@@ -83,6 +83,46 @@ function Ignore-SSLCertificates
     [System.Net.ServicePointManager]::CertificatePolicy = $TrustAll
 }
 
+Function Get-Pending-Updates-Per-Computer {
+<#
+ .SYNOPSIS
+   Use the Get-PendingUpdates Cmdlet to get updates per Maschine and parse them
+
+ .DESCRIPTION
+   Submits machine information to an infrastructure database
+
+ .PARAMETER ComputerName
+   Mandatory. The name of the computer object you want to have the pending updates for.
+
+ .INPUTS
+   Parameters above
+ #>
+ [CmdletBinding()]
+
+ Param ([Parameter(Mandatory=$true)]$ComputerName)
+
+ $num_updates= 0;
+ $num_sec_updates= 0;
+ $updates= Get-PendingUpdate -Computer $ComputerName
+
+ foreach ($update in $updates) {
+    <# 
+        Parse String and count:
+        security-update++ if the title contains Security
+
+    #>
+    if ($update."Title" -match "Security") {
+        $num_sec_updates++
+    }
+
+    $num_updates++
+
+ }
+ Log-Write -LogPath "C:\Windows\Temp\IDB-AD.log" -LineValue "1: $num_updates"
+ return @{ "Updates"= $num_updates; "Security_Updates"= $num_sec_updates}
+
+}
+
 Function Submit-Computer {
  <#
   .SYNOPSIS
@@ -119,13 +159,22 @@ Function Submit-Computer {
   $os_release= $machine_data."OperatingSystemVersion"
   $ip4= $machine_data."IPv4Address"
 
+  $Updates= Get-Pending-Updates-Per-Computer($Computer."Name")
+
+  $P_u= $Updates.Get_Item("Updates")
+  $P_su= $Updates.Get_Item("Security_Updates")
+
+
   $json= "{
 		    ""fqdn"":""$fqdn"",
             ""os"":""$os"",
             ""os_release"":""$os_release"",
-            ""nics"":[{""ip_address"": {""addr"": ""$ip4"" }, ""name"": ""eth0""}]
+            ""nics"":[{""ip_address"": {""addr"": ""$ip4"" }, ""name"": ""eth0""}],
+            ""pending_updates"":""$P_u"",
+            ""pending_security_updates"":""$P_su""
 		    }"
 
+  Log-Write -LogPath "C:\Windows\Temp\IDB-AD.log" -LineValue "Dumping the body: $json"
   Invoke-RestMethod -Method PUT -ContentType "application/json" -Body $json -Uri  https://idb-dev.office.bytemine.net/api/v1/machines
   
 }
