@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Settings>
+<IDBUrl>http://idb-dev.office.bytemine.net:8888</IDBUrl>
+<ADFilter>*</ADFilter>
+<IgnoreSSL>True</IgnoreSSL>
+</Settings>

@@ -35,28 +35,35 @@
 #Import PSLogging Module
 #Import-Module PSLogging
 #Dot Source required Function Libraries
-. "C:\Users\Administrator\Desktop\Logging_Functions.ps1"
 
-. "C:\Users\Administrator\Desktop\Get-PendingUpdate.ps1"
+. "$PSScriptRoot\contrib\Function-Write-Log.ps1"
+. "$PSScriptRoot\contrib\Get-PendingUpdate.ps1"
 
 #Import ActiveDirectory Module
 Import-Module ActiveDirectory
 
 #----------------------------------------------------------[Declarations]----------------------------------------------------------
 
-#Script Version
-$sScriptVersion = '1.0'
+$LogPath = "$PSScriptRoot\idbad.log"
 
-#Log File Info
-$sLogPath = 'C:\Users\Administrator\Desktop\'
-$sLogName = 'idb-ad.log'
-$sLogFile = Join-Path -Path $sLogPath -ChildPath $sLogName
+$ConfigPath = "$PSScriptRoot\config.xml"
+
+Write-Log -Path $LogPath -Message "Loading config $ConfigPath"
+[xml]$XMLConfig = Get-Content "$ConfigPath"
+
+$IDBUrl = $XMLConfig.Settings.IDBURL
+$ADFilter = $XMLConfig.Settings.ADFilter
+[bool]$IgnoreSSL = [System.Convert]::ToBoolean($XMLConfig.Settings.IgnoreSSL)
+
+Write-Log -Path $LogPath -Message "IDB Url: $IDBUrl"
+Write-Log -Path $LogPath -Message "AD Filter: $ADFilter"
+Write-Log -Path $LogPath -Message "Ignore SSL: $IgnoreSSL"
 
 #-----------------------------------------------------------[Functions]------------------------------------------------------------
 
 function Ignore-SSLCertificates
 {
-    Log-Write -LogPath "C:\Windows\Temp\IDB-AD.log" -LineValue "Ignoring broken SSL Certificates"
+   Write-Log -Path $LogPath -Message "Ignoring broken SSL Certificates"
     $Provider = New-Object Microsoft.CSharp.CSharpCodeProvider
     $Compiler = $Provider.CreateCompiler()
     $Params = New-Object System.CodeDom.Compiler.CompilerParameters
@@ -118,7 +125,7 @@ Function Get-Pending-Updates-Per-Computer {
     $num_updates++
 
  }
- Log-Write -LogPath "C:\Windows\Temp\IDB-AD.log" -LineValue "1: $num_updates"
+ Write-Log -Path $LogPath -Message "1: $num_updates"
  return @{ "Updates"= $num_updates; "Security_Updates"= $num_sec_updates}
 
 }
@@ -174,18 +181,18 @@ Function Submit-Computer {
             ""pending_security_updates"":""$P_su""
 		    }"
 
-  Log-Write -LogPath "C:\Windows\Temp\IDB-AD.log" -LineValue "Dumping the body: $json"
-  Invoke-RestMethod -Method PUT -ContentType "application/json" -Body $json -Uri  https://idb-dev.office.bytemine.net/api/v1/machines
+  Write-Log -Path $LogPath -Message "Dumping the body: $json"
+  Invoke-RestMethod -Method PUT -ContentType "application/json" -Body $json -Uri $IDBUrl
   
 }
 
 #-----------------------------------------------------------[Execution]------------------------------------------------------------=
 
-Log-Start -LogPath "C:\Windows\Temp" -LogName "IDB-AD.log" -ScriptVersion "1.0"
+if ($IgnoreSSL) {
+    Ignore-SSLCertificates
+}
 
-Ignore-SSLCertificates
-
-$machines= Get-ADComputer -Filter *
+$machines= Get-ADComputer -Filter $ADFilter
 
 foreach ($machine in $machines) {
     Submit-Computer($machine)
