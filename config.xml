@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Settings>
-<IDBUrl>http://idb-dev.office.bytemine.net:8888</IDBUrl>
+<IDBUrl>https://idb-dev.office.bytemine.net</IDBUrl>
+<IDBApiToken></IDBApiToken>
+<IDBCreateMachine>True</IDBCreateMachine>
 <ADFilter>*</ADFilter>
 <IgnoreSSL>True</IgnoreSSL>
 </Settings>

@@ -52,10 +52,13 @@ Write-Log -Path $LogPath -Message "Loading config $ConfigPath"
 [xml]$XMLConfig = Get-Content "$ConfigPath"
 
 $IDBUrl = $XMLConfig.Settings.IDBURL
+$IDBApiToken = $XMLConfig.Settings.IDBApiToken
 $ADFilter = $XMLConfig.Settings.ADFilter
 [bool]$IgnoreSSL = [System.Convert]::ToBoolean($XMLConfig.Settings.IgnoreSSL)
+[bool]$IDBCreateMachine = [System.Convert]::ToBoolean($XMLConfig.Settings.IDBCreateMachine)
 
 Write-Log -Path $LogPath -Message "IDB Url: $IDBUrl"
+Write-Log -Path $LogPath -Message "IDB Create Machine: $IDBCreateMachine"
 Write-Log -Path $LogPath -Message "AD Filter: $ADFilter"
 Write-Log -Path $LogPath -Message "Ignore SSL: $IgnoreSSL"
 
@@ -171,6 +174,12 @@ Function Submit-Computer {
   $P_u= $Updates.Get_Item("Updates")
   $P_su= $Updates.Get_Item("Security_Updates")
 
+  $createMachine = ""
+  if ($IDBCreateMachine) {
+    $createMachine = "true"
+  } else {
+    $createMachine = "false"
+  }
 
   $json= "{
 		    ""fqdn"":""$fqdn"",
@@ -178,11 +187,17 @@ Function Submit-Computer {
             ""os_release"":""$os_release"",
             ""nics"":[{""ip_address"": {""addr"": ""$ip4"" }, ""name"": ""eth0""}],
             ""pending_updates"":""$P_u"",
-            ""pending_security_updates"":""$P_su""
+            ""pending_security_updates"":""$P_su"",
+            ""create_machine"":""$createMachine""
 		    }"
 
   Write-Log -Path $LogPath -Message "Dumping the body: $json"
-  Invoke-RestMethod -Method PUT -ContentType "application/json" -Body $json -Uri $IDBUrl
+  try {
+    Invoke-RestMethod -Method PUT -ContentType "application/json" -Body $json -Uri "${IDBUrl}/api/v2/machines?idb_api_token=${IDBApiToken}"
+  } catch {
+    $res_status = $_.Exception.Response.StatusCode
+    Write-Log -Path $LogPath -Message "IDB returned: $res_status"
+  }
   
 }
 
