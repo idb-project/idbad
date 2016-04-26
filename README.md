@@ -8,4 +8,9 @@ https://gallery.technet.microsoft.com/scriptcenter/0dbfc125-b855-4058-87ec-93026
 
 https://technet.microsoft.com/en-us/library/hh852328(v=wps.630).aspx
 
+# Generate the installer
 
+- install the wix-toolset: http://wixtoolset.org/
+- put it in the PATH: https://msdn.microsoft.com/de-de/library/gg513936.aspx
+- candle.exe idbad.wxs
+- light.exe idbad.wixobj
