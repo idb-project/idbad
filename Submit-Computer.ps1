@@ -1,4 +1,4 @@
-#requires -version 4
+#requires -version 3
 <#
 .SYNOPSIS
   Crawl an ActiveDirectory for available Computerobjects.
@@ -193,7 +193,7 @@ Function Submit-Computer {
 
   Write-Log -Path $LogPath -Message "Dumping the body: $json"
   try {
-    Invoke-RestMethod -Method PUT -ContentType "application/json" -Body $json -Uri "${IDBUrl}/api/v2/machines?idb_api_token=${IDBApiToken}"
+    Invoke-RestMethod -Method PUT -ContentType "application/json" -Body $json -Uri "${IDBUrl}?idb_api_token=${IDBApiToken}"
   } catch {
     $res_status = $_.Exception.Response.StatusCode
     Write-Log -Path $LogPath -Message "IDB returned: $res_status"

@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Settings>
-<IDBUrl>https://idb-dev.office.bytemine.net</IDBUrl>
+<!-- Full URL including path to machines resource, eg. https://example.org/api/v2/machines -->
+<IDBUrl></IDBUrl>
+<!-- Secret API token -->
 <IDBApiToken></IDBApiToken>
+<!-- Should machines not existing in IDB be created. "True" or "False". -->
 <IDBCreateMachine>True</IDBCreateMachine>
+<!-- AD filter string used to discover machines -->
 <ADFilter>*</ADFilter>
+<!-- Ignore invalid SSL chains. "True" or "False" -->
 <IgnoreSSL>True</IgnoreSSL>
 </Settings>
