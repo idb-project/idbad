@@ -20,3 +20,7 @@ https://technet.microsoft.com/en-us/library/hh852328(v=wps.630).aspx
 - candle.exe idbad.wxs
 - light.exe idbad.wixobj
 
+# Authors
+
+* Ruben Schuller <schuller@bytemine.net>
+* Felix Kronlage <kronlage@bytemine.net>
